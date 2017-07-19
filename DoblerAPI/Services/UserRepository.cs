@@ -26,7 +26,7 @@ namespace DoblerAPI.Services {
         //}
 
 
-        public UserGroups GetUserData (User user) {
+        public UserData GetUserData (User user) {
             var sqlGet = "select * from Users where Email = '" + user.Email + "'";
             var response = connection.Query<User>(sqlGet).FirstOrDefault();
 
@@ -36,7 +36,11 @@ namespace DoblerAPI.Services {
                 user.Name = response.Name;
                 user.Email = response.Email;
 
-                var userData = GetUserGroups(user);
+                var userData = new UserData{
+                    User = user,
+                    Groups = GetUserGroups(user),
+                    Coupons = GetUserCoupons(user)
+                };
 
                 return userData;
             }
@@ -45,20 +49,21 @@ namespace DoblerAPI.Services {
             return AddUser(user);
         }
 
-        public UserGroups GetUserGroups (User user) {
-
-            var userGroups = new UserGroups();
-            userGroups.User = user;
-
+        public List<Group> GetUserGroups (User user) {
             var sqlGet = "select g.Id, g.Name from User_Groups ug INNER JOIN Groups g ON g.Id = ug.GroupId WHERE ug.UserId = '" + user.Id + "'";
             var response = connection.Query<Group>(sqlGet);
 
-            userGroups.Groups = response.ToList();
-
-            return userGroups;
+            return response.ToList();
         }
 
-        public UserGroups AddUser (User user) {
+        public List<Coupon> GetUserCoupons (User user) {
+            var sqlGet = "select * from Coupons WHERE UserId = '" + user.Id + "' ORDER BY Created DESC";
+            var response = connection.Query<Coupon>(sqlGet);
+
+            return response.ToList();
+        }
+
+        public UserData AddUser (User user) {
             var sqlAdd = "INSERT INTO Users(Name, Email) VALUES('" + user.Name + "', '" + user.Email + "')";
 
             SqlCommand command = new SqlCommand(sqlAdd, connection);
@@ -70,9 +75,10 @@ namespace DoblerAPI.Services {
             var sqlGet = "select * from Users where Email = '" + user.Email + "'";
             var response = connection.Query<User>(sqlGet).FirstOrDefault();
             if (response != null){
-                var newUser = new UserGroups(){
+                var newUser = new UserData(){
                     User   = response,
-                    Groups = null
+                    Groups = null,
+                    Coupons = null
                 };
 
                 return newUser;

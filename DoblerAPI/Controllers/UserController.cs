@@ -21,7 +21,7 @@ namespace DoblerAPI.Controllers {
         //    return userRepository.GetAllUsers();
         //}
 
-        public UserGroups GetUserData (string name, string email) {
+        public UserData GetUserData (string name, string email) {
             var user = new User();
             //Change input to lowercase - to make sure that we don't have 2 f the same accounts just because of casing. 
             user.Name = name.ToLower();
