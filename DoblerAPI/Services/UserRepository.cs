@@ -87,6 +87,19 @@ namespace DoblerAPI.Services {
             return null;
         }
 
+        public Coupon AddCoupon (Coupon coupon) {
+
+            var sqlAdd = "INSERT INTO Coupons(UserId, GroupId) " +
+                         "VALUES('" + coupon.UserId + "', '" + coupon.GroupId + "')";
+
+            SqlCommand command = new SqlCommand(sqlAdd, connection);
+            command.Connection.Open();
+            command.ExecuteNonQuery();
+            command.Connection.Close();
+
+            return coupon;
+        }
+
         public List<User> GetUsersForGroup (int groupId) {
 
             var userList = new List<User>();
