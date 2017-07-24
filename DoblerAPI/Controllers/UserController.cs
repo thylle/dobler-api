@@ -33,8 +33,8 @@ namespace DoblerAPI.Controllers {
         public IEnumerable<User> GetUsersForGroup (int groupId) {
             return userRepository.GetUsersForGroup(groupId);
         }
-
-        public Coupon GetAddCoupon (int UserId, int GroupId, int Amount, float TotalReturns) {
+        [HttpGet]
+        public Coupon CreateCoupon (int UserId, int GroupId, int Amount, float TotalReturns) {
 
             var coupon = new Coupon{
                 UserId = UserId,
@@ -43,7 +43,7 @@ namespace DoblerAPI.Controllers {
                 TotalReturns = TotalReturns
             };
 
-            return userRepository.AddCoupon(coupon);
+            return userRepository.CreateCoupon(coupon);
         }
 
         // POST: api/User
