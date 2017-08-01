@@ -28,14 +28,35 @@ namespace DoblerAPI.Services {
 
         public Group CreateGroup (string name, bool isPrivate, int userId) {
 
+            name = name.ToLower();
+
             connection.Open();
             SqlCommand command = new SqlCommand("[dbo].[CreateAndJoinGroup]", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@name", name);
             command.Parameters.AddWithValue("@isPrivate", isPrivate);
             command.Parameters.AddWithValue("@userId", userId);
+
+            //Get return value
+            SqlParameter returnParameter = command.Parameters.Add("RetVal", SqlDbType.Int);
+            returnParameter.Direction = ParameterDirection.ReturnValue;
+
             command.ExecuteNonQuery();
             connection.Close();
+
+            int newGroupId = (int)returnParameter.Value;
+
+            if (newGroupId > 0) {
+                var newGroup = new Group {
+                    Id = newGroupId,
+                    AdminId = userId,
+                    Name = name,
+                    Private = isPrivate,
+                    UserIsMember = false,
+                };
+
+                return newGroup;
+            }
 
             return null;
         }
