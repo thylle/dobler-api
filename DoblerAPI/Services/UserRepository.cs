@@ -12,19 +12,7 @@ namespace DoblerAPI.Services {
     public class UserRepository {
 
         SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["doblerConnectionString"].ConnectionString);
-
-        //public IEnumerable<User> GetAllUsers () {
-
-        //    string sqlGet = "select * from Users";
-
-        //    var response = connection.Query<User>(sqlGet).Select(item => new User {
-        //        Id = item.Id,
-        //        Name = item.Name
-        //    });
-
-        //    return response;
-        //}
-
+        
 
         public UserData GetUserData (User user) {
             var sqlGet = "select * from Users where Email = '" + user.Email + "'";
@@ -36,7 +24,7 @@ namespace DoblerAPI.Services {
                 user.Name = response.Name;
                 user.Email = response.Email;
 
-                var userData = new UserData{
+                var userData = new UserData {
                     User = user,
                     Groups = GetUserGroups(user),
                     Coupons = GetUserCoupons(user)
@@ -50,18 +38,20 @@ namespace DoblerAPI.Services {
         }
 
         public List<Group> GetUserGroups (User user) {
-            var sqlGet = "select g.Id, g.Name from User_Groups ug INNER JOIN Groups g ON g.Id = ug.GroupId WHERE ug.UserId = '" + user.Id + "'";
+            var sqlGet = "SELECT g.Id, g.Name, g.Private, g.UserIsMember, g.AdminId, ug.Bank FROM User_Groups ug INNER JOIN Groups g ON g.Id = ug.GroupId WHERE ug.UserId = '" + user.Id + "'";
             var response = connection.Query<Group>(sqlGet);
 
             return response.ToList();
         }
 
         public List<Coupon> GetUserCoupons (User user) {
-            var sqlGet = "select * from Coupons WHERE UserId = '" + user.Id + "' ORDER BY Created DESC";
+            var sqlGet = "SELECT * FROM Coupons WHERE UserId = '" + user.Id + "' ORDER BY Created DESC";
             var response = connection.Query<Coupon>(sqlGet);
 
             return response.ToList();
         }
+
+
 
         public UserData AddUser (User user) {
             var sqlAdd = "INSERT INTO Users(Name, Email) VALUES('" + user.Name + "', '" + user.Email + "')";
@@ -102,11 +92,11 @@ namespace DoblerAPI.Services {
             return coupon;
         }
 
-        public List<User> GetUsersForGroup (int groupId) {
+        public List<UserInGroup> GetUsersForGroup (int groupId) {
 
-            var userList = new List<User>();
-            var sqlGet = "select u.Id, u.Name from User_Groups ug INNER JOIN Users u ON u.Id = ug.UserId WHERE ug.GroupId = '" + groupId + "'";
-            var response = connection.Query<User>(sqlGet);
+            var userList = new List<UserInGroup>();
+            var sqlGet = "select u.Id, u.Name, ug.Bank from User_Groups ug INNER JOIN Users u ON u.Id = ug.UserId WHERE ug.GroupId = '" + groupId + "'";
+            var response = connection.Query<UserInGroup>(sqlGet);
 
             userList = response.ToList();
 
