@@ -19,15 +19,24 @@ namespace DoblerAPI.Services {
             var response = connection.Query<User>(sqlGet).FirstOrDefault();
 
             //Return the user if it already exists
-            if (response != null) {
-                user.Id = response.Id;
+            if (response != null)
+            {
+                var userId = response.Id;
+                var userGroups = GetUserGroups(userId);
+                var userCoupons = GetUserCoupons(userId);
+                var wins = userCoupons.Count(x => x.Won); //Count amount of coupons the user has won
+                var losses = userCoupons.Count() - wins;
+
+                user.Id = userId;
                 user.Name = response.Name;
                 user.Email = response.Email;
+                user.Wins = wins;
+                user.Losses = losses;
 
                 var userData = new UserData {
                     User = user,
-                    Groups = GetUserGroups(user),
-                    Coupons = GetUserCoupons(user)
+                    Groups = userGroups,
+                    Coupons = userCoupons
                 };
 
                 return userData;
@@ -37,15 +46,29 @@ namespace DoblerAPI.Services {
             return AddUser(user);
         }
 
-        public List<Group> GetUserGroups (User user) {
-            var sqlGet = "SELECT g.Id, g.Name, g.Private, g.UserIsMember, g.AdminId, ug.Bank FROM User_Groups ug INNER JOIN Groups g ON g.Id = ug.GroupId WHERE ug.UserId = '" + user.Id + "'";
-            var response = connection.Query<Group>(sqlGet);
+        public List<UserGroup> GetUserGroups (int userId) {
+            var sqlGet = "SELECT g.Id, g.Name, g.Private, g.UserIsMember, g.AdminId, ug.Bank " +
+                         "FROM User_Groups ug INNER JOIN Groups g ON g.Id = ug.GroupId WHERE ug.UserId = '" + userId + "'";
+            var response = connection.Query<UserGroup>(sqlGet).ToList();
+
+            if (response.Any()){
+                foreach (var item in response){
+                    item.Coupons = GetUserGroupCoupons(item.Id);
+                }
+            }
+
+            return response;
+        }
+
+        public List<Coupon> GetUserCoupons (int userId) {
+            var sqlGet = "SELECT * FROM Coupons WHERE UserId = '" + userId + "' ORDER BY Created DESC";
+            var response = connection.Query<Coupon>(sqlGet);
 
             return response.ToList();
         }
 
-        public List<Coupon> GetUserCoupons (User user) {
-            var sqlGet = "SELECT * FROM Coupons WHERE UserId = '" + user.Id + "' ORDER BY Created DESC";
+        public List<Coupon> GetUserGroupCoupons (int groupId) {
+            var sqlGet = "SELECT * FROM Coupons WHERE GroupId = '" + groupId + "' ORDER BY Created DESC";
             var response = connection.Query<Coupon>(sqlGet);
 
             return response.ToList();

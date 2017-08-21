@@ -4,9 +4,8 @@ using System.Linq;
 using System.Web;
 
 namespace DoblerAPI.Models {
-    public class UserData {
-        public User User { get; set; }
-        public List<UserGroup> Groups { get; set; }
+    public class UserGroup : Group {
+        public int Bank { get; set; }
         public List<Coupon> Coupons { get; set; }
     }
 }
